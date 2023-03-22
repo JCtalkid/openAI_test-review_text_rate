@@ -1,9 +1,34 @@
+from re import findall
+import logging
 import csv
+import os
 
-from main_test_scratch import fun_GPT_respons, FILE_NAME
+import openai
+
+from config import *
+
+
+openai.api_key = os.getenv('OPENAI_API_KEY')
+logging.basicConfig(level=logging.DEBUG,
+                    format="%(asctime)s %(levelname)s %(message)s",
+                    datefmt="%Y-%m-%d %H:%M:%S",
+                    filename='log.log'
+                    )
+
+
+def fun_GPT_respons(review: str) -> int:
+    prompt = f"Rank review on a scale of 1 to 10. Give only the numeric rating. Review: {review}"
+    response = openai.Completion.create(engine=GPT_ENGINE, prompt=prompt, temperature=0)
+
+    logging.debug(f'{response}')
+
+    message = response['choices'][0]['text']
+    match_list = findall('\d{1,2}', message)
+
+    return int(match_list[0])
+
 
 if __name__ == '__main__':
-    # Прочесть данные
     csvfile_data = []
     with open(FILE_NAME, mode='r') as csvfile_toread:
         csv_reader = csv.DictReader(csvfile_toread)
@@ -11,13 +36,10 @@ if __name__ == '__main__':
         for index, row in enumerate(csv_reader, 1):
             csvfile_data.append(row)
 
-
-    # Проанализировать данные
     for i, row in enumerate(csvfile_data):
         row['rate'] = fun_GPT_respons(row['review text'])
 
-    # Записать данные
-    with open(FILE_NAME[:-4]+'_analyzed.csv', mode='w') as csvfile_towrite:
+    with open(FILE_NAME[:-4]+'_analyzed.csv', mode='w', newline='') as csvfile_towrite:
         csv_writer = csv.DictWriter(csvfile_towrite, fieldnames=list(csvfile_data[0].keys()))
 
         csv_writer.writeheader()
