@@ -1,7 +1,6 @@
 /Welltory Test_Python Developer_App Reviews - Data.csv
-/config.py
-/connection_test.py
+/openAI_settings.py
 /CSV-test.py
-/log.log
-.idea/*
+/API_tokens.log
+/.idea/*
 /Welltory Test_Python Developer_App Reviews - Data_analyzed.csv

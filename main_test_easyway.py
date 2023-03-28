@@ -1,32 +1,6 @@
-from re import findall
-import logging
 import csv
-import os
 
-import openai
-
-from config import *
-
-
-openai.api_key = os.getenv('OPENAI_API_KEY')
-logging.basicConfig(level=logging.DEBUG,
-                    format="%(asctime)s %(levelname)s %(message)s",
-                    datefmt="%Y-%m-%d %H:%M:%S",
-                    filename='log.log'
-                    )
-
-
-def fun_GPT_respons(review: str) -> int:
-    prompt = f"Rank review on a scale of 1 to 10. Give only the numeric rating. Review: {review}"
-    response = openai.Completion.create(engine=GPT_ENGINE, prompt=prompt, temperature=0)
-
-    logging.debug(f'{response}')
-
-    message = response['choices'][0]['text']
-    match_list = findall('\d{1,2}', message)
-
-    return int(match_list[0])
-
+from openAI_API_service import *
 
 if __name__ == '__main__':
     csvfile_data = []
@@ -37,7 +11,7 @@ if __name__ == '__main__':
             csvfile_data.append(row)
 
     for i, row in enumerate(csvfile_data):
-        row['rate'] = fun_GPT_respons(row['review text'])
+        row['rate'] = fun_GPT_response(row['review text'])
 
     with open(FILE_NAME[:-4]+'_analyzed.csv', mode='w', newline='') as csvfile_towrite:
         csv_writer = csv.DictWriter(csvfile_towrite, fieldnames=list(csvfile_data[0].keys()))

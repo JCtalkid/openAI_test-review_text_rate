@@ -21,59 +21,11 @@
 """
 
 import csv
-import logging
-from re import findall
 
-from transformers import AutoTokenizer
-import torch
-import openai
-
-from config import *
-
-openai.api_key = os.getenv('OPENAI_API_KEY')
-logging.basicConfig(level=logging.DEBUG,
-                    format="%(asctime)s %(levelname)s %(message)s",
-                    datefmt="%Y-%m-%d %H:%M:%S",
-                    filename='log.log'
-                    )
-
-
-def fun_token_counter(txt: str) -> int:
-    tokenizer = AutoTokenizer.from_pretrained("gpt2")
-    input_ids = torch.tensor(tokenizer.encode(txt)).unsqueeze(0)
-    num_tokens = input_ids.shape[1]
-    return num_tokens
-
-
-'''
-prompt before GPT optimization = "Act as a system. Range this reviews by rave with rate on a scale from 1 to 10,
-where 10 is the most enthusiastic review, 1 is the most negative review.
-Return me only a list of rate numbers separate with ','."
-
-prompt after GPT optimization = "Rank reviews on a scale of 1 to 10. Give only the numeric ratings separated by commas."
-'''
-
-
-def fun_GPT_respons_list(review_list: list[str]) -> list[int]:
-    prompt = "Rank reviews on a scale of 1 to 10. Give only the numeric ratings separated by commas. " \
-             f"Reviews: {review_list}"
-
-    # try:
-    response = openai.Completion.create(engine=GPT_ENGINE, prompt=prompt, temperature=0)
-    # except ConnectionError:
-    #     logging.error(f'{ConnectionError}')
-    logging.debug(f'{response}')
-
-    # [int(i) for i in response['choices'][0]['text'].split(',')]
-
-    message = response['choices'][0]['text']
-    match_list = findall('\d{1,2}', message)
-
-    return match_list
+from openAI_API_service import *
 
 
 BUFFER_TOKENS_LIMIT = MAX_TOKENS * 0.8
-
 def buffer_zone(text: str, start=False):
     buffer = []
     buffer_token_count = 0
